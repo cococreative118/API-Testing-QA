@@ -26,7 +26,7 @@ jobs:
 
     # 步骤 3：重头戏！敲入我们刚才本地敲过的命令，让它在云端全自动跑起来
     - name: 3. Run Tests with Maven
-      run: mvn clean test -Denv=qa
+      run: mvn clean test
 
     # 步骤 4：不管上面测试是成功还是失败，把产生的 Allure 报告打包上传，让你能在网页上下载
     - name: 4. Upload Allure Results
