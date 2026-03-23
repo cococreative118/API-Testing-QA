@@ -1,0 +1,37 @@
+name: API Automated Tests
+
+# 什么时候触发这个流水线？
+on:
+  push:
+    branches: [ "main" ] # 当有代码 push 到 main 分支时自动触发
+
+# 具体怎么跑？
+jobs:
+  run-api-tests:
+    runs-on: ubuntu-latest # 给你的流水线分配一台免费的云端 Linux 小服务器
+
+    # 具体的执行步骤
+    steps:
+    # 步骤 1：把 GitHub 仓库里的最新代码抓取到这台小服务器上
+    - name: 1. Checkout code
+      uses: actions/checkout@v4
+
+    # 步骤 2：给这台小服务器安装 Java 17 环境
+    - name: 2. Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven # 缓存 maven 的依赖下载记录，让下次跑得更快！
+
+    # 步骤 3：重头戏！敲入我们刚才本地敲过的命令，让它在云端全自动跑起来
+    - name: 3. Run Tests with Maven
+      run: mvn clean test -Denv=qa
+
+    # 步骤 4：不管上面测试是成功还是失败，把产生的 Allure 报告打包上传，让你能在网页上下载
+    - name: 4. Upload Allure Results
+      if: always() # 这是一个重要设置：保证即使测试由于报错终止，这一步也会坚持执行
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-results
+        path: target/allure-results/
