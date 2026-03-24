@@ -30,10 +30,22 @@ jobs:
     - name: 3. Run Tests with Maven
       run: mvn clean test
 
-    # 步骤 4：不管上面测试是成功还是失败，把产生的 Allure 报告打包上传，让你能在网页上下载
-    - name: 4. Upload Allure Results
-      if: always() # 这是一个重要设置：保证即使测试由于报错终止，这一步也会坚持执行
-      uses: actions/upload-artifact@v4
+    # 步骤 4：生成供网页展示的 Allure 历史报告库
+    - name: 4. Generate Allure Report
+      uses: simple-elf/allure-report-action@master
+      if: always() # 保证哪怕前面测试挂了，报告照样生成
+      id: allure-report
       with:
-        name: allure-results
-        path: target/allure-results/
+        allure_results: target/allure-results
+        gh_pages: gh-pages # 指定一个特殊分支用来存网页
+        allure_report: allure-report
+        allure_history: allure-history # 保留之前的运行历史（超酷的特性！）
+
+    # 步骤 5：把报告一键发布到免费服务器（GitHub Pages）！
+    - name: 5. Deploy report to Github Pages
+      uses: peaceiris/actions-gh-pages@v3
+      if: always()
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }} # 用你的账号自动授权
+        publish_branch: gh-pages # 把网页代码发到这个特殊分支
+        publish_dir: allure-history # 发送的内容是前面准备好的历史报告库
